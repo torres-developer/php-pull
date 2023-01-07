@@ -1,0 +1,44 @@
+{
+    "$schema": "https://getcomposer.org/schema.json",
+    "name": "torres-developer/pull",
+    "description": "An PHP cURL extension wrapper",
+    "type": "library",
+    "keywords": [
+        "curl",
+        "libcurl",
+        "fiber"
+    ],
+    "homepage": "https://github.com/torres-developer/php-pull",
+    "readme": "./README.md",
+    "time": "2023-01-07",
+    "license": "GPL-3.0-or-later",
+    "authors": [
+        {
+            "name": "torres-developer",
+            "email": "torres.dev@disroot.org",
+            "homepage": "https://github.com/torres-developer",
+            "role": "Developer"
+        }
+    ],
+    "support": {
+        "issues": "https://github.com/torres-developer/php-pull/issues",
+        "source": "https://github.com/torres-developer/php-pull/"
+    },
+    "require": {
+        "php": ">=8.1.13",
+        "pds/skeleton": "^1.0",
+        "ext-curl": "*"
+    },
+    "autoload": {
+        "psr-4": {
+            "TorresDeveloper\\Pull\\": "src/"
+        }
+    },
+    "minimum-stability": "dev",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/torres-developer/php-pull"
+        }
+    ]
+}
