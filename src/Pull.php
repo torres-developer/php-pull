@@ -42,7 +42,7 @@ use TorresDeveloper\HTTPMessage\Stream;
  * @author João Torres <torres.dev@disroot.org>
  *
  * @since 0.0.1
- * @version 0.0.1
+ * @version 0.0.2
  */
 class Pull
 {
@@ -62,6 +62,7 @@ class Pull
         curl_setopt_array($handle, [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $req->getHeaders(),
+            CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HEADER => false
         ]);
 
