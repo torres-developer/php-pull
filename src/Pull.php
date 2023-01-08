@@ -80,9 +80,10 @@ class Pull
                     CURLOPT_CUSTOMREQUEST => HTTPVerb::from($req->getMethod())->value,
                     CURLOPT_POSTFIELDS => $req->getBody()->getContents(),
                 ]);
+                break;
         }
 
-        $body = curl_exec($handle);
+        $body = curl_exec($handle) ?? "";
 
         $info = curl_getinfo($handle);
         $status = $info["http_code"];
@@ -95,11 +96,10 @@ class Pull
             new Stream($body)
         );
 
-        \Fiber::suspend(
-            $res->withHeader(
-                "Content-Type",
-                $info["content_type"]
-            )
-        );
+        if ($ct = $info["content_type"] ?? null) {
+            $res = $res->withHeader("Content-Type", $ct);
+        }
+
+        \Fiber::suspend($res);
     }
 }
