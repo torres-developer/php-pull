@@ -33,7 +33,10 @@
     "autoload": {
         "psr-4": {
             "TorresDeveloper\\Pull\\": "src/"
-        }
+        },
+        "files": [
+            "src/pull.php"
+        ]
     },
     "minimum-stability": "dev",
     "repositories": [
