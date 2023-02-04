@@ -45,5 +45,9 @@ function pull(
 ): string {
     $req = new Request($resource, $method, $body, $headers);
 
-    return Pull::fetch()->start($req)->getBody()->getContents();
+    try {
+        return Pull::fetch()->start($req)->getBody()->getContents();
+    } catch (\RuntimeException) {
+        return "";
+    }
 }
