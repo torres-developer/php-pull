@@ -103,7 +103,7 @@ class Pull
         $res = new Response(
             $status,
             Response::STATUS[$status] ?? "",
-            new Stream($body)
+            new Stream((string) $body)
         );
 
         if ($ct = $info["content_type"] ?? null) {
