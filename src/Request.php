@@ -32,21 +32,34 @@ declare(strict_types=1);
 namespace TorresDeveloper\Pull;
 
 use Psr\Http\Message\StreamInterface;
+use Psr\Http\Message\UriInterface;
 use TorresDeveloper\HTTPMessage\Headers;
 use TorresDeveloper\HTTPMessage\HTTPVerb;
+use TorresDeveloper\HTTPMessage\Request as ParentRequest;
+use TorresDeveloper\HTTPMessage\Stream;
 use TorresDeveloper\HTTPMessage\URI;
 
-function pull(
-    string|URI $resource,
-    HTTPVerb $method = HTTPVerb::GET,
-    StreamInterface|\SplFileObject|string|null|array $body = null,
-    Headers|iterable $headers = []
-): string {
-    $req = new Request($resource, $method, $body, $headers);
+final class Request extends ParentRequest
+{
+    private bool $bodyIsArray = false;
 
-    try {
-        return Pull::fetch()->start($req)->getBody()->getContents();
-    } catch (\RuntimeException) {
-        return "";
+    public function __construct(
+        UriInterface|string $resource = new URI("/"),
+        HTTPVerb|string $method = HTTPVerb::GET,
+        StreamInterface|\SplFileObject|string|array|null $body = new Stream(null),
+        Headers|iterable $headers = new Headers(),
+        string $protocol = ""
+    ) {
+        if (is_array($body)) {
+            $this->bodyIsArray = true;
+            $body = serialize($body);
+        }
+
+        parent::__construct($resource, $method, $body, $headers, $protocol);
+    }
+
+    public function getBodyIsArray(): bool
+    {
+        return $this->bodyIsArray;
     }
 }

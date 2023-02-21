@@ -55,7 +55,7 @@ class Pull
         return new \Fiber(static::pull(...));
     }
 
-    private static function pull(RequestInterface $req): void
+    private static function pull(RequestInterface|Request $req): void
     {
         $handle = curl_init((string) $req->getUri());
 
@@ -66,19 +66,25 @@ class Pull
             CURLOPT_HEADER => false
         ]);
 
+        $contents = $req->getBody()->getContents();;
+
+        if ($req instanceof Request && $req->getBodyIsArray()) {
+            $contents = unserialize($contents);
+        }
+
         switch ($req->getMethod()) {
             case HTTPVerb::GET->value:
                 break;
             case HTTPVerb::POST->value:
                 curl_setopt_array($handle, [
                     CURLOPT_POST => true,
-                    CURLOPT_POSTFIELDS => $req->getBody()->getContents(),
+                    CURLOPT_POSTFIELDS => $contents,
                 ]);
                 break;
             default:
                 curl_setopt_array($handle, [
                     CURLOPT_CUSTOMREQUEST => HTTPVerb::from($req->getMethod())->value,
-                    CURLOPT_POSTFIELDS => $req->getBody()->getContents(),
+                    CURLOPT_POSTFIELDS => $contents,
                 ]);
                 break;
         }
