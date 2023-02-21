@@ -41,7 +41,7 @@ use TorresDeveloper\HTTPMessage\URI;
 
 final class Request extends ParentRequest
 {
-    private bool $bodyIsArray = false;
+    private ?array $bodyIsArray = null;
 
     public function __construct(
         UriInterface|string $resource = new URI("/"),
@@ -51,14 +51,14 @@ final class Request extends ParentRequest
         string $protocol = ""
     ) {
         if (is_array($body)) {
-            $this->bodyIsArray = true;
-            $body = serialize($body);
+            $this->bodyIsArray = $body;
+            $body = new Stream(null);
         }
 
         parent::__construct($resource, $method, $body, $headers, $protocol);
     }
 
-    public function getBodyIsArray(): bool
+    public function getBodyIsArray(): ?array
     {
         return $this->bodyIsArray;
     }

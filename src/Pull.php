@@ -72,8 +72,8 @@ class Pull
             $contents = null;
         }
 
-        if ($req instanceof Request && $req->getBodyIsArray()) {
-            $contents = unserialize($contents);
+        if ($req instanceof Request && is_array($req->getBodyIsArray())) {
+            $contents = $req->getBodyIsArray();
         }
 
         switch ($req->getMethod()) {
