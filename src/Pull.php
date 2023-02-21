@@ -66,7 +66,11 @@ class Pull
             CURLOPT_HEADER => false
         ]);
 
-        $contents = $req->getBody()->getContents();;
+        try {
+            $contents = $req->getBody()->getContents();
+        } catch (\RuntimeException) {
+            $contents = null;
+        }
 
         if ($req instanceof Request && $req->getBodyIsArray()) {
             $contents = unserialize($contents);
