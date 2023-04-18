@@ -59,9 +59,15 @@ class Pull
     {
         $handle = curl_init((string) $req->getUri());
 
+        $headers = $req->getHeaders();
+        $headers_opts = [];
+        foreach ($headers as $h => $v) {
+             $headers_opts[] = "$h: " . implode(", ", $v);
+        }
+
         curl_setopt_array($handle, [
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_HTTPHEADER => $req->getHeaders(),
+            CURLOPT_HTTPHEADER => $headers_opts,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HEADER => false
         ]);
