@@ -32,6 +32,7 @@ declare(strict_types=1);
 namespace TorresDeveloper\Pull;
 
 use Psr\Http\Message\RequestInterface;
+use TorresDeveloper\HTTPMessage\Headers;
 use TorresDeveloper\HTTPMessage\HTTPVerb;
 use TorresDeveloper\HTTPMessage\Response;
 use TorresDeveloper\HTTPMessage\Stream;
@@ -66,6 +67,7 @@ class Pull
         }
 
         curl_setopt_array($handle, [
+            CURLOPT_HEADER => true,
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headers_opts,
             CURLOPT_FOLLOWLOCATION => true,
@@ -99,22 +101,33 @@ class Pull
                 break;
         }
 
-        $body = curl_exec($handle) ?? "";
+        $buf = curl_exec($handle);
+
+        if ($buf === false) {
+            throw new \RuntimeException();
+        }
+
+        $responseHeadersSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
+        $responseHeadersRaw = explode("\r\n", substr($buf, 0, $responseHeadersSize));
+        $body = substr($buf, $responseHeadersSize);
 
         $info = curl_getinfo($handle);
         $status = $info["http_code"];
 
         curl_close($handle);
 
+        $responseHeaders = new Headers();
+        foreach ($responseHeadersRaw as $h) {
+            [$k, $v] = explode(":", $h, 2);
+            $responseHeaders->{trim($k)} = trim($v);
+        }
+
         $res = new Response(
             $status,
             Response::STATUS[$status] ?? "",
-            new Stream((string) $body)
+            new Stream((string) $body),
+            $responseHeaders,
         );
-
-        if ($ct = $info["content_type"] ?? null) {
-            $res = $res->withHeader("Content-Type", $ct);
-        }
 
         \Fiber::suspend($res);
     }
