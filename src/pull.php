@@ -31,6 +31,7 @@ declare(strict_types=1);
 
 namespace TorresDeveloper\Pull;
 
+use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\StreamInterface;
 use TorresDeveloper\HTTPMessage\Headers;
 use TorresDeveloper\HTTPMessage\HTTPVerb;
@@ -41,12 +42,8 @@ function pull(
     HTTPVerb $method = HTTPVerb::GET,
     StreamInterface|\SplFileObject|string|null|array $body = null,
     Headers|iterable $headers = []
-): string {
+): ResponseInterface {
     $req = new Request($resource, $method, $body, $headers);
 
-    try {
-        return Pull::fetch()->start($req)->getBody()->getContents();
-    } catch (\RuntimeException) {
-        return "";
-    }
+    return Pull::fetch()->start($req);
 }
