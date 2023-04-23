@@ -63,7 +63,7 @@ class Pull
         $headers = $req->getHeaders();
         $headers_opts = [];
         foreach ($headers as $h => $v) {
-             $headers_opts[] = "$h: " . implode(", ", $v);
+            $headers_opts[] = "$h: " . implode(", ", $v);
         }
 
         curl_setopt_array($handle, [
@@ -108,18 +108,23 @@ class Pull
         }
 
         $responseHeadersSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
-        $responseHeadersRaw = explode("\r\n", substr($buf, 0, $responseHeadersSize));
-        $body = substr($buf, $responseHeadersSize);
-
+        [$responseHeadersRaw, $body] = explode("\r\n\r\n", $buf, 2);
+        if ($body === null) {
+            $body = $responseHeadersRaw;
+            $responseHeadersRaw = null;
+        }
         $info = curl_getinfo($handle);
         $status = $info["http_code"];
 
         curl_close($handle);
 
         $responseHeaders = new Headers();
-        foreach ($responseHeadersRaw as $h) {
-            [$k, $v] = explode(":", $h, 2);
-            $responseHeaders->{trim($k)} = trim($v);
+        if ($responseHeadersRaw !== null) {
+            $responseHeadersRaw = explode("\r\n", $responseHeadersRaw);
+            foreach ($responseHeadersRaw as $h) {
+                [$k, $v] = explode(":", $h, 2);
+                $responseHeaders->{trim($k)} = trim($v);
+            }
         }
 
         $res = new Response(
