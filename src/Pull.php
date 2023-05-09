@@ -56,7 +56,7 @@ class Pull
         return new \Fiber(static::pull(...));
     }
 
-    private static function pull(RequestInterface|Request $req): void
+    private static function pull(RequestInterface|Request $req, array $opts = []): void
     {
         $handle = curl_init((string) $req->getUri());
 
@@ -73,6 +73,8 @@ class Pull
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_HEADER => false
         ]);
+
+        curl_setopt_array($handle, $opts);
 
         try {
             $contents = $req->getBody()->getContents();

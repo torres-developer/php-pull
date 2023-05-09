@@ -41,9 +41,10 @@ function pull(
     string|URI $resource,
     HTTPVerb $method = HTTPVerb::GET,
     StreamInterface|\SplFileObject|string|null|array $body = null,
-    Headers|iterable $headers = []
+    Headers|iterable $headers = [],
+    array $opts = [],
 ): ResponseInterface {
     $req = new Request($resource, $method, $body, $headers);
 
-    return Pull::fetch()->start($req);
+    return Pull::fetch()->start($req, $opts);
 }
