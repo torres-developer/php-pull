@@ -109,8 +109,7 @@ class Pull
             throw new \RuntimeException();
         }
 
-        $responseHeadersSize = curl_getinfo($handle, CURLINFO_HEADER_SIZE);
-        [$responseHeadersRaw, $body] = explode("\r\n\r\n", $buf, 2);
+        @[$responseHeadersRaw, $body] = explode("\r\n\r\n", $buf, 2);
         if ($body === null) {
             $body = $responseHeadersRaw;
             $responseHeadersRaw = null;
