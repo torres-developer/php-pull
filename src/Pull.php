@@ -34,7 +34,6 @@ namespace TorresDeveloper\Pull;
 use Psr\Http\Message\RequestInterface;
 use TorresDeveloper\HTTPMessage\Headers;
 use TorresDeveloper\HTTPMessage\HTTPVerb;
-use TorresDeveloper\HTTPMessage\Response;
 use TorresDeveloper\HTTPMessage\Stream;
 
 /**
@@ -56,7 +55,7 @@ class Pull
         return new \Fiber(static::pull(...));
     }
 
-    private static function pull(RequestInterface|Request $req, array $opts = []): void
+    private static function pull(RequestInterface $req, array $opts = []): void
     {
         $handle = curl_init((string) $req->getUri());
 

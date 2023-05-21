@@ -31,19 +31,15 @@ declare(strict_types=1);
 
 namespace TorresDeveloper\Pull;
 
-use Psr\Http\Message\StreamInterface;
-use TorresDeveloper\HTTPMessage\Headers;
-use TorresDeveloper\HTTPMessage\HTTPVerb;
-use TorresDeveloper\HTTPMessage\URI;
+use TorresDeveloper\HTTPMessage\Response as ParentResponse;
 
-function pull(
-    string|URI $resource,
-    HTTPVerb $method = HTTPVerb::GET,
-    StreamInterface|\SplFileObject|string|null|array $body = null,
-    Headers|iterable $headers = [],
-    array $opts = [],
-): Response {
-    $req = new Request($resource, $method, $body, $headers);
+final class Response extends ParentResponse
+{
+    public function text(): string {
+        return $this->getBody()->getContents();
+    }
 
-    return Pull::fetch()->start($req, $opts);
+    public function json(): mixed {
+        return json_decode($this->text(), true);
+    }
 }
