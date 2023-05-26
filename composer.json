@@ -25,7 +25,7 @@
         "source": "https://github.com/torres-developer/php-pull/"
     },
     "require": {
-        "php": ">=8.1.7",
+        "php": ">=8.1.6",
         "pds/skeleton": "^1.0",
         "ext-curl": "*",
         "torres-developer/http-message-impl": "dev-master"
