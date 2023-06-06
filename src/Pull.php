@@ -55,8 +55,11 @@ class Pull
         return new \Fiber(static::pull(...));
     }
 
-    private static function pull(RequestInterface $req, array $opts = []): void
-    {
+    private static function pull(
+        RequestInterface $req,
+        array $opts = [],
+        bool $verbose = false
+    ): void {
         $handle = curl_init((string) $req->getUri());
 
         $headers = $req->getHeaders();
@@ -70,7 +73,7 @@ class Pull
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headers_opts,
             CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HEADER => false
+            CURLOPT_VERBOSE => $verbose,
         ]);
 
         curl_setopt_array($handle, $opts);
@@ -105,7 +108,7 @@ class Pull
         $buf = curl_exec($handle);
 
         if ($buf === false) {
-            throw new \RuntimeException();
+            throw new \RuntimeException(sprintf("[%d]: %s", curl_errno($handle), curl_error($handle)));
         }
 
         @[$responseHeadersRaw, $body] = explode("\r\n\r\n", $buf, 2);
@@ -122,8 +125,10 @@ class Pull
         if ($responseHeadersRaw !== null) {
             $responseHeadersRaw = explode("\r\n", $responseHeadersRaw);
             foreach ($responseHeadersRaw as $h) {
-                [$k, $v] = explode(":", $h, 2);
-                $responseHeaders->{trim($k)} = trim($v);
+                @[$k, $v] = explode(":", $h, 2);
+                if ($k && $v) {
+                    $responseHeaders->{trim($k)} = trim($v);
+                }
             }
         }
 

@@ -35,11 +35,13 @@ use TorresDeveloper\HTTPMessage\Response as ParentResponse;
 
 final class Response extends ParentResponse
 {
-    public function text(): string {
+    public function text(): string
+    {
         return $this->getBody()->getContents();
     }
 
-    public function json(): mixed {
+    public function json(): mixed
+    {
         return json_decode($this->text(), true);
     }
 }
