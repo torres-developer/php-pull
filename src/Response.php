@@ -44,4 +44,8 @@ final class Response extends ParentResponse
     {
         return json_decode($this->text(), true);
     }
+
+    public function ok(): bool {
+        return ($this->status < 200) || ($this->status >= 300);
+    }
 }
