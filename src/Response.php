@@ -37,7 +37,11 @@ final class Response extends ParentResponse
 {
     public function text(): string
     {
-        return $this->getBody()->getContents();
+        try {
+            return $this->getBody()->getContents();
+        } finally {
+            return "";
+        }
     }
 
     public function json(): mixed
@@ -45,7 +49,8 @@ final class Response extends ParentResponse
         return json_decode($this->text(), true);
     }
 
-    public function ok(): bool {
+    public function ok(): bool
+    {
         return ($this->status < 200) || ($this->status >= 300);
     }
 }
