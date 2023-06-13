@@ -52,6 +52,6 @@ final class Response extends ParentResponse
 
     public function ok(): bool
     {
-        return ($this->status < 200) || ($this->status >= 300);
+        return ($this->status >= 200) && ($this->status < 300);
     }
 }
