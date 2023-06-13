@@ -111,7 +111,10 @@ class Pull
             throw new \RuntimeException(sprintf("[%d]: %s", curl_errno($handle), curl_error($handle)));
         }
 
-        @[$responseHeadersRaw, $body] = explode("\r\n\r\n", $buf, 2);
+        $parts = explode("\r\n\r\n", $buf, 2);
+        $responseHeadersRaw = $parts[count($parts) - 2];
+        $body = $parts[count($parts) - 1];
+
         if ($body === null) {
             $body = $responseHeadersRaw;
             $responseHeadersRaw = null;
