@@ -39,9 +39,10 @@ final class Response extends ParentResponse
     {
         try {
             return $this->getBody()->getContents();
-        } finally {
-            return "";
+        } catch (\Throwable) {
         }
+
+        return "";
     }
 
     public function json(): mixed
