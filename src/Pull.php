@@ -58,12 +58,24 @@ class Pull
         $this->fiber = $fiber;
     }
 
+    public function waitResponse(): Response
+    {
+        while (true) {
+            try {
+                return $this->response();
+            } catch (\RuntimeException | \FiberError) {
+            }
+        }
+    }
+
     public function response(): Response
     {
-        $res = $this->fiber->getReturn();
+        if ($this->fiber->isTerminated()) {
+            $res = $this->fiber->getReturn();
 
-        if ($res instanceof Response) {
-            return $res;
+            if ($res instanceof Response) {
+                return $res;
+            }
         }
 
         throw new \RuntimeException();
