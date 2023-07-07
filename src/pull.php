@@ -42,8 +42,9 @@ function pull(
     StreamInterface|\SplFileObject|string|null|array $body = null,
     Headers|iterable $headers = [],
     array $opts = [],
-): Response {
+    bool $verbose = false,
+): Pull {
     $req = new Request($resource, $method, $body, $headers);
 
-    return Pull::fetch()->start($req, $opts);
+    return new Pull($req, $opts, $verbose);
 }
