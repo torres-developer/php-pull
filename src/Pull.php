@@ -32,9 +32,14 @@ declare(strict_types=1);
 namespace TorresDeveloper\Pull;
 
 use Psr\Http\Message\RequestInterface;
+use React\Promise\Promise;
+use React\Promise\PromiseInterface;
 use TorresDeveloper\HTTPMessage\Headers;
 use TorresDeveloper\HTTPMessage\HTTPVerb;
 use TorresDeveloper\HTTPMessage\Stream;
+
+use function React\Async\async;
+use function React\Async\await;
 
 /**
  * The class that gives an API to use the curl extension
@@ -46,7 +51,8 @@ use TorresDeveloper\HTTPMessage\Stream;
  */
 class Pull
 {
-    private \Fiber $fiber;
+    // private \Fiber $fiber;
+    private PromiseInterface $fiber;
 
     public function __construct(
         RequestInterface $req,
@@ -54,33 +60,122 @@ class Pull
         bool $verbose = false
     ) {
         $fiber = $this->pull($req, $opts, $verbose);
-        $fiber->start($req, $opts, $verbose);
+        //$fiber->start($req, $opts, $verbose);
         $this->fiber = $fiber;
-    }
-
-    public function waitResponse(): Response
-    {
-        while (true) {
-            try {
-                return $this->response();
-            } catch (\RuntimeException | \FiberError) {
-            }
-        }
     }
 
     public function response(): Response
     {
-        if ($this->fiber->isTerminated()) {
-            $res = $this->fiber->getReturn();
+        //if ($this->fiber->isTerminated()) {
+        //    $res = $this->fiber->getReturn();
 
-            if ($res instanceof Response) {
-                return $res;
-            }
-        }
+        //    if ($res instanceof Response) {
+        //        return $res;
+        //    }
+        //}
 
-        throw new \RuntimeException();
+        //throw new \RuntimeException();
+
+        $res = await($this->fiber);
+        assert($res instanceof Response);
+        return $res;
     }
 
+    private function pull(
+        RequestInterface $req,
+        array $opts,
+        bool $verbose
+    ): PromiseInterface {
+        return async(static function () use (
+            $req,
+            $opts,
+            $verbose
+        ): Response {
+            $handle = curl_init((string) $req->getUri());
+
+            $headers = $req->getHeaders();
+            $headers_opts = [];
+            foreach ($headers as $h => $v) {
+                $headers_opts[] = "$h: " . implode(", ", $v);
+            }
+
+            curl_setopt_array($handle, [
+                CURLOPT_HEADER => true,
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_HTTPHEADER => $headers_opts,
+                CURLOPT_FOLLOWLOCATION => true,
+                CURLOPT_VERBOSE => $verbose,
+            ]);
+
+            curl_setopt_array($handle, $opts);
+
+            try {
+                $contents = $req->getBody()->getContents();
+            } catch (\RuntimeException) {
+                $contents = null;
+            }
+
+            if ($req instanceof Request && is_array($req->getBodyIsArray())) {
+                $contents = $req->getBodyIsArray();
+            }
+
+            switch ($req->getMethod()) {
+                case HTTPVerb::GET->value:
+                    break;
+                case HTTPVerb::POST->value:
+                    curl_setopt_array($handle, [
+                        CURLOPT_POST => true,
+                        CURLOPT_POSTFIELDS => $contents,
+                    ]);
+                    break;
+                default:
+                    curl_setopt_array($handle, [
+                        CURLOPT_CUSTOMREQUEST => HTTPVerb::from($req->getMethod())->value,
+                        CURLOPT_POSTFIELDS => $contents,
+                    ]);
+                    break;
+            }
+
+            $buf = curl_exec($handle);
+
+            if ($buf === false) {
+                throw new \RuntimeException(sprintf("[%d]: %s", curl_errno($handle), curl_error($handle)));
+            }
+
+            $parts = explode("\r\n\r\n", $buf);
+            $responseHeadersRaw = $parts[count($parts) - 2] ?? null;
+            $body = $parts[count($parts) - 1] ?? null;
+
+            if ($body === null) {
+                $body = $responseHeadersRaw;
+                $responseHeadersRaw = null;
+            }
+            $info = curl_getinfo($handle);
+            $status = $info["http_code"];
+
+            curl_close($handle);
+
+            $responseHeaders = new Headers();
+            if ($responseHeadersRaw !== null) {
+                $responseHeadersRaw = explode("\r\n", $responseHeadersRaw);
+                foreach ($responseHeadersRaw as $h) {
+                    @[$k, $v] = explode(":", $h, 2);
+                    if ($k && $v) {
+                        $responseHeaders->{trim($k)} = trim($v);
+                    }
+                }
+            }
+
+            return new Response(
+                $status,
+                Response::STATUS[$status] ?? "",
+                new Stream((string) $body),
+                $responseHeaders,
+            );
+        })();
+    }
+
+    /*
     private function pull(): \Fiber
     {
         return new \Fiber(static function (
@@ -173,4 +268,5 @@ class Pull
             \Fiber::suspend($res);
         });
     }
+*/
 }
